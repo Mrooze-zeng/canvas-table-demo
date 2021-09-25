@@ -6,7 +6,9 @@ export default class Base {
     width = 100,
     height = 45,
     color = "yellow",
+    fixed = "",
     onFocus = function () {},
+    onScroll = function () {},
   }) {
     this.name = name;
     this.x = x;
@@ -16,7 +18,9 @@ export default class Base {
     this.width = width;
     this.height = height;
     this.color = color;
+    this.fixed = fixed;
     this.onFocus = onFocus;
+    this.onScroll = onScroll;
     this.listeners = new Map();
   }
   update({
@@ -34,8 +38,20 @@ export default class Base {
     this.parent && this.parent.draw();
   }
   updatePosition(x = 0, y = 0) {
-    this.x = this.originX - x;
-    this.y = this.originY - y;
+    switch (this.fixed) {
+      case "top":
+        this.x = this.originX - x;
+        this.y = 0;
+        break;
+      case "left":
+        this.x = 0;
+        this.y = this.originY - y;
+        break;
+      default:
+        this.x = this.originX - x;
+        this.y = this.originY - y;
+    }
+    this.onScroll(this);
   }
   setParent(parent = null) {
     this.parent = parent;

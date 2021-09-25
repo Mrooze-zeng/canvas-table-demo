@@ -9,14 +9,13 @@ export default class Stage {
     this.children = [];
   }
   addLayer(...layers) {
-    this.children = this.children.concat = layers;
+    this.children = this.children.concat(layers).reverse();
     this.render();
     return this;
   }
   render(x = 0, y = 0) {
     this.ctx.save();
     this.ctx.clearRect(0, 0, this.width, this.height);
-    // this.ctx.translate(x, y);
     this.children.forEach((layer) => {
       !layer.parent && layer.setParent(this);
       layer.updatePosition(x, y);
