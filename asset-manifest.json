@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/canvas-table-demo/static/css/main.2511e403.chunk.css",
+    "main.js": "/canvas-table-demo/static/js/main.ecaa2bd6.chunk.js",
+    "main.js.map": "/canvas-table-demo/static/js/main.ecaa2bd6.chunk.js.map",
+    "runtime-main.js": "/canvas-table-demo/static/js/runtime-main.4d0c9617.js",
+    "runtime-main.js.map": "/canvas-table-demo/static/js/runtime-main.4d0c9617.js.map",
+    "static/js/2.0cf185a8.chunk.js": "/canvas-table-demo/static/js/2.0cf185a8.chunk.js",
+    "static/js/2.0cf185a8.chunk.js.map": "/canvas-table-demo/static/js/2.0cf185a8.chunk.js.map",
+    "static/js/3.47fc5d51.chunk.js": "/canvas-table-demo/static/js/3.47fc5d51.chunk.js",
+    "static/js/3.47fc5d51.chunk.js.map": "/canvas-table-demo/static/js/3.47fc5d51.chunk.js.map",
+    "index.html": "/canvas-table-demo/index.html",
+    "static/css/main.2511e403.chunk.css.map": "/canvas-table-demo/static/css/main.2511e403.chunk.css.map",
+    "static/js/2.0cf185a8.chunk.js.LICENSE.txt": "/canvas-table-demo/static/js/2.0cf185a8.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.4d0c9617.js",
+    "static/js/2.0cf185a8.chunk.js",
+    "static/css/main.2511e403.chunk.css",
+    "static/js/main.ecaa2bd6.chunk.js"
+  ]
+}
