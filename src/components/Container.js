@@ -41,8 +41,6 @@ export default class Container extends Component {
     this.stage.insertCanvas(this.wrapper);
 
     this._createCeil({
-      initX: 0,
-      initY: 0,
       layer: headerRow,
       color: "orange",
     });
@@ -59,8 +57,7 @@ export default class Container extends Component {
         dataSource: this.dataSource[i],
       });
       this._createCeil({
-        initX: 0,
-        initY: bodyRow.y,
+        y: bodyRow.y,
         layer: bodyRow,
         row: i,
       });
@@ -78,14 +75,7 @@ export default class Container extends Component {
   _getTotalHeight() {
     return this.dataSource.length * 45;
   }
-  _createCeil({
-    initX = 0,
-    initY = 0,
-    width = 100,
-    layer = null,
-    color = "green",
-    row = 0,
-  }) {
+  _createCeil({ y = 0, layer = null, color = "green", row = 0 }) {
     const self = this;
     let ceils = [];
     let fixed = "";
@@ -96,7 +86,6 @@ export default class Container extends Component {
         prev += curv.width;
         return prev;
       }, 0);
-      let y = initY;
 
       if (layer.name === "body" && columns[i].fixed) {
         fixed = "left";
