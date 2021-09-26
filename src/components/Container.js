@@ -25,7 +25,7 @@ export default class Container extends Component {
     };
   }
   static getDerivedStateFromProps(props, state) {
-    console.log(props, state);
+    // console.log(props, state);
     return null;
   }
   componentDidMount() {
@@ -114,14 +114,15 @@ export default class Container extends Component {
           columns: columns,
           dataSource: dataSource,
           onFocus: function ({ dataSource = {}, image }) {
-            if (columns[i].type === "image") {
+            if (layer.name === "body" && columns[i].type === "image") {
               document.body.querySelectorAll("img").forEach((img) => {
                 img.remove();
               });
               document.body.appendChild(image);
               alert(`click on ${dataSource.name}'s avatar`);
-            } else {
+            } else if (layer.name === "body" && columns[i].type !== "image") {
               self.updateInputLayer.call(self, this);
+            } else {
             }
           },
           onScroll: function () {
@@ -176,15 +177,18 @@ export default class Container extends Component {
       onScrollToBottom();
     }
   }, 10);
-  commonTrigger(event = "", e) {
+  commonTrigger(event = "", e, callback = function () {}) {
     const { left, top } = e.target.getBoundingClientRect();
     const x = e.clientX - left,
       y = e.clientY - top;
     let currentLayer = null;
-    this.stage.children.forEach((layer) => {
+    this.stage.getViewportChildren(20).forEach((layer) => {
       layer.isCurrentElement(layer, { x, y }) && (currentLayer = layer);
     });
-    currentLayer && currentLayer.trigger(event, { x, y });
+    if (currentLayer) {
+      currentLayer.trigger(event, { x, y });
+      callback();
+    }
   }
   handleClick(e) {
     this.commonTrigger("click", e);
@@ -200,9 +204,34 @@ export default class Container extends Component {
   handleBlur() {
     this.updateInputLayer({}, false);
   }
-  handleMouseMove(e) {
-    // this.commonTrigger("hover", e);
-  }
+  handleMouseMove = _.debounce((e) => {
+    const { left, top } = e.target.getBoundingClientRect();
+    const x = e.clientX - left,
+      y = e.clientY - top;
+    const currentCeil = this.stage.getCurrentCeil({ x, y });
+    if (!currentCeil) {
+      return;
+    }
+    if (
+      currentCeil.layer.name === "body" &&
+      currentCeil.column.type !== "image"
+    ) {
+      this.wrapperRef.style.cursor = "text";
+    } else if (
+      currentCeil.layer.name === "body" &&
+      currentCeil.column.type === "image"
+    ) {
+      this.wrapperRef.style.cursor = "pointer";
+    } else {
+      this.wrapperRef.style.cursor = "auto";
+    }
+  }, 50);
+  handleMouseEnter = _.debounce((e) => {
+    // this.wrapperRef.style.cursor = "text";
+  }, 100);
+  handleMouseOut = _.debounce((e) => {
+    this.wrapperRef.style.cursor = "auto";
+  }, 100);
   calculateScrollEndPosition() {
     return {
       top: this._getTotalHeight() + 40 + this.dataSource.length,
@@ -220,6 +249,8 @@ export default class Container extends Component {
         onDoubleClick={this.handleDoubleClick.bind(this)}
         onContextMenu={this.handleContextMenu.bind(this)}
         onMouseMove={this.handleMouseMove.bind(this)}
+        onMouseEnter={this.handleMouseEnter.bind(this)}
+        onMouseOut={this.handleMouseOut.bind(this)}
       >
         <div className="wrapper-scroll">
           <div

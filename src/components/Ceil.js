@@ -12,9 +12,9 @@ export default class Ceil extends Base {
       console.log("move...", args);
       this.update(args);
     });
-    this.on("hover", (event = "", args = { x: 0, y: 0 }) => {
-      console.log("hover...", args);
-    });
+    // this.on("hover", (event = "", args = { x: 0, y: 0 }) => {
+    //   console.log("hover...", args, this);
+    // });
   }
   drawBorder() {
     this.ctx.strokeStyle = "white";

@@ -15,7 +15,7 @@ export default class Layer extends Base {
   }
   setEvent() {
     this.on("click,move", this.commonTrigger.bind(this));
-    this.on("hover", this.commonTrigger.bind(this));
+    // this.on("hover", this.commonTrigger.bind(this));
   }
   draw(x = 0, y = 0) {
     this.ctx.fillStyle = this.color;
