@@ -32,4 +32,5 @@
   position: absolute;
   line-height: 45px;
   font-size: 16px;
+  overflow: auto;
 }

@@ -1,16 +1,21 @@
 export default class Base {
   constructor({
     name = "",
+    text = "",
     x = 0,
     y = 0,
     width = 100,
     height = 45,
     color = "yellow",
     fixed = "",
+    columns = [],
+    column = {},
+    dataSource = {},
     onFocus = function () {},
     onScroll = function () {},
   }) {
     this.name = name;
+    this.text = text;
     this.x = x;
     this.y = y;
     this.originX = x;
@@ -19,6 +24,9 @@ export default class Base {
     this.height = height;
     this.color = color;
     this.fixed = fixed;
+    this.columns = columns;
+    this.column = column;
+    this.dataSource = dataSource;
     this.onFocus = onFocus;
     this.onScroll = onScroll;
     this.listeners = new Map();
@@ -41,11 +49,15 @@ export default class Base {
     switch (this.fixed) {
       case "top":
         this.x = this.originX - x;
-        this.y = 0;
+        this.y = this.originY;
         break;
       case "left":
-        this.x = 0;
+        this.x = this.originX;
         this.y = this.originY - y;
+        break;
+      case "top,left":
+        this.x = this.originX;
+        this.y = this.originY;
         break;
       default:
         this.x = this.originX - x;

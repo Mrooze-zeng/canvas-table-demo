@@ -5,11 +5,13 @@ export const columns = [
     title: "No.",
     width: 100,
     key: "id",
+    fixed: true,
   },
   {
     title: "Name",
-    width: 100,
+    width: 120,
     key: "name",
+    // fixed: true,
   },
   {
     title: "Age",
@@ -17,13 +19,13 @@ export const columns = [
     key: "age",
   },
   {
-    title: "Provice",
+    title: "Province",
     width: 100,
-    key: "provice",
+    key: "province",
   },
   {
     title: "City",
-    width: 100,
+    width: 120,
     key: "city",
   },
   {
@@ -48,11 +50,11 @@ export const columns = [
   },
 ];
 
-export const dataSource = (function (size = 100) {
+export const dataSource = (function (size = 50) {
   let output = [];
   for (let i = 0; i < size; i++) {
     output.push({
-      id: faker.datatype.uuid(),
+      id: i, // faker.datatype.uuid(),
       province: faker.address.state(),
       city: faker.address.city(),
       name: faker.name.findName(),
@@ -63,4 +65,4 @@ export const dataSource = (function (size = 100) {
     });
   }
   return output;
-})(10000);
+})(1000);

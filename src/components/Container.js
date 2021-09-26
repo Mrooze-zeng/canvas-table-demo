@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { Component, createRef } from "react";
 import Ceil from "./Ceil";
 import Layer from "./Layer";
@@ -8,8 +9,10 @@ export default class Container extends Component {
     super(props);
     this.wrapper = createRef();
     this.inputLayer = createRef();
-    this.width = 450;
-    this.height = 350;
+    this.columns = props.columns;
+    this.dataSource = props.dataSource;
+    this.width = 650;
+    this.height = 450;
     this.stage = new Stage({
       width: this.width,
       height: this.height,
@@ -20,46 +23,61 @@ export default class Container extends Component {
     };
   }
   componentDidMount() {
-    const bodyLayer = new Layer({
-      name: "body",
-      x: 0,
-      y: 45,
-      ctx: this.stage.ctx,
-      width: this.width * 10,
-      height: this.height * 10,
-      color: "white",
-    });
-    const headerLayer = new Layer({
+    const headerRow = new Layer({
       name: "header",
       x: 0,
       y: 0,
       ctx: this.stage.ctx,
-      width: this.width * 10,
+      width: this._getTotalWidth(),
       height: 45,
       color: "white",
       fixed: "top",
+      columns: this.columns,
+      dataSource: {},
     });
+    let bodyRows = [];
     this.stage.insertCanvas(this.wrapper);
-    this.stage.addLayer(headerLayer, bodyLayer);
+
     this._createCeil({
-      size: 50,
       initX: 0,
       initY: 0,
-      layer: headerLayer,
+      layer: headerRow,
       color: "orange",
     });
-    for (let i = 0; i < 75; i++) {
-      this._createCeil({
-        size: 50,
-        initX: 0,
-        initY: 45 + i * 46,
-        layer: bodyLayer,
-        row: i + 1,
+    for (let i = 0; i < this.dataSource.length; i++) {
+      let bodyRow = new Layer({
+        name: "body",
+        x: 0,
+        y: 45 + i * 46,
+        ctx: this.stage.ctx,
+        width: this._getTotalWidth(),
+        height: 45,
+        color: "white",
+        columns: this.columns,
+        dataSource: this.dataSource[i],
       });
+      this._createCeil({
+        initX: 0,
+        initY: bodyRow.y,
+        layer: bodyRow,
+        row: i,
+      });
+      bodyRows.push(bodyRow);
     }
+    this.stage.addLayer(headerRow, ...bodyRows);
+    console.log(this.stage);
+  }
+  _getTotalWidth() {
+    let width = 0;
+    this.columns.forEach((col) => {
+      width += col.width;
+    });
+    return width;
+  }
+  _getTotalHeight() {
+    return this.dataSource.length * 45;
   }
   _createCeil({
-    size = 10,
     initX = 0,
     initY = 0,
     width = 100,
@@ -69,19 +87,34 @@ export default class Container extends Component {
   }) {
     const self = this;
     let ceils = [];
-    for (let i = 0; i < size; i++) {
+    let fixed = "";
+    const columns = layer.columns;
+    const dataSource = layer.dataSource;
+    for (let i = 0; i < columns.length; i++) {
       let x = initX + i * (width + 1);
       let y = initY;
+
+      if (layer.name === "body" && columns[i].fixed) {
+        fixed = "left";
+      } else if (layer.name === "header" && columns[i].fixed) {
+        fixed = "top,left";
+      } else {
+        fixed = layer.fixed;
+      }
       ceils.push(
         new Ceil({
           name: `列${i}-行${row}`,
+          text: dataSource[columns[i].key] || columns[i].title,
           x: x,
           y: y,
-          width: 100,
+          width: columns[i].width,
           height: 45,
           ctx: this.stage.ctx,
           color: color,
-          fixed: layer.fixed,
+          fixed: fixed,
+          column: columns[i],
+          columns: columns,
+          dataSource: dataSource,
           onFocus: function () {
             self.updateInputLayer.call(self, this);
           },
@@ -94,7 +127,7 @@ export default class Container extends Component {
     layer.add(...ceils);
   }
   updateInputLayer(
-    { width = 0, height = 0, x = 0, y = 0, name = "", color = "orange" },
+    { width = 0, height = 0, x = 0, y = 0, text = "", color = "orange" },
     show = true,
   ) {
     this.setState({
@@ -107,7 +140,7 @@ export default class Container extends Component {
         zIndex: 1,
         background: color,
       },
-      currentText: name,
+      currentText: text,
     });
     if (show) {
       setTimeout(() => {
@@ -115,10 +148,10 @@ export default class Container extends Component {
       });
     }
   }
-  handleScroll(e) {
+  handleScroll = _.throttle((e) => {
     const { scrollTop, scrollLeft } = e.target;
     this.stage.render(scrollLeft, scrollTop);
-  }
+  }, 10);
   handleClick(e) {
     const { left, top } = e.target.getBoundingClientRect();
     const x = e.clientX - left,
@@ -138,6 +171,12 @@ export default class Container extends Component {
   }
   handleBlur() {
     this.updateInputLayer({}, false);
+  }
+  calculateScrollEndPosition() {
+    return {
+      top: this._getTotalHeight() + 35 + this.dataSource.length,
+      left: this._getTotalWidth() - (this._getTotalWidth() % this.width) - 13,
+    };
   }
   render() {
     const { inputLayerStyle, currentText } = this.state;
@@ -161,10 +200,7 @@ export default class Container extends Component {
           >
             <div
               className="wrapper-scroll-end"
-              style={{
-                top: this.height * 10,
-                left: this.width * 10,
-              }}
+              style={this.calculateScrollEndPosition()}
             ></div>
             <div
               className="input-placeholder"
