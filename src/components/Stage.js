@@ -1,12 +1,14 @@
 export default class Stage {
   constructor({ width = 250, height = 250 }) {
-    this.width = width;
-    this.height = height;
+    let ratio = window.devicePixelRatio || 1;
+    this.width = width * ratio;
+    this.height = height * ratio;
     this.canvas = document.createElement("canvas");
     this.canvas.width = width;
     this.canvas.height = height;
     this.ctx = this.canvas.getContext("2d");
     this.children = [];
+    this.ctx.scale(ratio, ratio);
   }
   addLayer(...layers) {
     this.children = this.children.concat(layers).reverse();

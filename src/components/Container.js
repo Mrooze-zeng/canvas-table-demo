@@ -7,6 +7,7 @@ import Stage from "./Stage";
 export default class Container extends Component {
   constructor(props) {
     super(props);
+
     this.wrapper = createRef();
     this.inputLayer = createRef();
     this.columns = props.columns;
@@ -19,6 +20,7 @@ export default class Container extends Component {
     });
     this.state = {
       inputLayerStyle: {},
+      inputLayerVisibleState: false,
       currentText: "",
     };
   }
@@ -27,7 +29,7 @@ export default class Container extends Component {
       name: "header",
       x: 0,
       y: 0,
-      ctx: this.stage.ctx,
+      stage: this.stage,
       width: this._getTotalWidth(),
       height: 45,
       color: "white",
@@ -49,7 +51,7 @@ export default class Container extends Component {
         name: "body",
         x: 0,
         y: 45 + i * 46,
-        ctx: this.stage.ctx,
+        stage: this.stage,
         width: this._getTotalWidth(),
         height: 45,
         color: "white",
@@ -65,7 +67,6 @@ export default class Container extends Component {
       bodyRows.push(bodyRow);
     }
     this.stage.addLayer(headerRow, ...bodyRows);
-    console.log(this.stage);
   }
   _getTotalWidth() {
     let width = 0;
@@ -91,7 +92,10 @@ export default class Container extends Component {
     const columns = layer.columns;
     const dataSource = layer.dataSource;
     for (let i = 0; i < columns.length; i++) {
-      let x = initX + i * (width + 1);
+      let x = ceils.reduce((prev, curv, i) => {
+        prev += curv.width;
+        return prev;
+      }, 0);
       let y = initY;
 
       if (layer.name === "body" && columns[i].fixed) {
@@ -109,17 +113,28 @@ export default class Container extends Component {
           y: y,
           width: columns[i].width,
           height: 45,
-          ctx: this.stage.ctx,
+          stage: this.stage,
+          layer: layer,
           color: color,
           fixed: fixed,
           column: columns[i],
           columns: columns,
           dataSource: dataSource,
-          onFocus: function () {
-            self.updateInputLayer.call(self, this);
+          onFocus: function ({ dataSource = {}, image }) {
+            if (columns[i].type === "image") {
+              document.body.querySelectorAll("img").forEach((img) => {
+                img.remove();
+              });
+              document.body.appendChild(image);
+              alert(`click on ${dataSource.name}'s avatar`);
+            } else {
+              self.updateInputLayer.call(self, this);
+            }
           },
           onScroll: function () {
-            self.updateInputLayer.call(self, this, false);
+            const { inputLayerVisibleState } = self.state;
+            inputLayerVisibleState &&
+              self.updateInputLayer.call(self, this, false);
           },
         }),
       );
@@ -141,6 +156,7 @@ export default class Container extends Component {
         background: color,
       },
       currentText: text,
+      inputLayerVisibleState: show,
     });
     if (show) {
       setTimeout(() => {
@@ -152,14 +168,18 @@ export default class Container extends Component {
     const { scrollTop, scrollLeft } = e.target;
     this.stage.render(scrollLeft, scrollTop);
   }, 10);
-  handleClick(e) {
+  commonTrigger(event = "", e) {
     const { left, top } = e.target.getBoundingClientRect();
     const x = e.clientX - left,
       y = e.clientY - top;
+    let currentLayer = null;
     this.stage.children.forEach((layer) => {
-      layer.isCurrentElement(layer, { x, y }) &&
-        layer.trigger("click", { x, y });
+      layer.isCurrentElement(layer, { x, y }) && (currentLayer = layer);
     });
+    currentLayer && currentLayer.trigger(event, { x, y });
+  }
+  handleClick(e) {
+    this.commonTrigger("click", e);
   }
   handleDoubleClick() {
     console.log("handleDoubleClick");
@@ -172,10 +192,13 @@ export default class Container extends Component {
   handleBlur() {
     this.updateInputLayer({}, false);
   }
+  handleMouseMove(e) {
+    // this.commonTrigger("hover", e);
+  }
   calculateScrollEndPosition() {
     return {
-      top: this._getTotalHeight() + 35 + this.dataSource.length,
-      left: this._getTotalWidth() - (this._getTotalWidth() % this.width) - 13,
+      top: this._getTotalHeight() + 40 + this.dataSource.length,
+      left: this._getTotalWidth() - this.stage.width / 2 + 5, //- (this._getTotalWidth() % this.stage.width) - 13,
     };
   }
   render() {
@@ -188,6 +211,7 @@ export default class Container extends Component {
         onBlur={this.handleBlur.bind(this)}
         onDoubleClick={this.handleDoubleClick.bind(this)}
         onContextMenu={this.handleContextMenu.bind(this)}
+        onMouseMove={this.handleMouseMove.bind(this)}
       >
         <div className="wrapper-scroll">
           <div

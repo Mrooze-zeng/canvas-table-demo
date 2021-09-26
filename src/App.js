@@ -3,7 +3,13 @@ import Container from "./components/Container";
 import { columns, dataSource } from "./mock";
 
 function App() {
-  return <Container columns={columns} dataSource={dataSource} />;
+  const sortFixedColumns = function (columns = []) {
+    let ouput = columns.filter((col) => col.fixed);
+    return ouput.concat(columns.filter((col) => !col.fixed));
+  };
+  return (
+    <Container columns={sortFixedColumns(columns)} dataSource={dataSource} />
+  );
 }
 
 export default App;

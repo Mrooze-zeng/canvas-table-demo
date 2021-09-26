@@ -8,10 +8,17 @@ export const columns = [
     fixed: true,
   },
   {
+    title: "Avatar",
+    width: 100,
+    type: "image",
+    key: "avatar",
+    fixed: true,
+  },
+  {
     title: "Name",
     width: 120,
     key: "name",
-    // fixed: true,
+    fixed: true,
   },
   {
     title: "Age",
@@ -54,7 +61,8 @@ export const dataSource = (function (size = 50) {
   let output = [];
   for (let i = 0; i < size; i++) {
     output.push({
-      id: i, // faker.datatype.uuid(),
+      id: "" + i, // faker.datatype.uuid(),
+      avatar: faker.image.avatar(),
       province: faker.address.state(),
       city: faker.address.city(),
       name: faker.name.findName(),

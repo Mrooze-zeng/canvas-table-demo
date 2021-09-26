@@ -11,6 +11,8 @@ export default class Base {
     columns = [],
     column = {},
     dataSource = {},
+    stage = {},
+    layer = null,
     onFocus = function () {},
     onScroll = function () {},
   }) {
@@ -22,6 +24,7 @@ export default class Base {
     this.originY = y;
     this.width = width;
     this.height = height;
+    this.ctx = stage.ctx;
     this.color = color;
     this.fixed = fixed;
     this.columns = columns;
@@ -29,7 +32,73 @@ export default class Base {
     this.dataSource = dataSource;
     this.onFocus = onFocus;
     this.onScroll = onScroll;
+    this.stage = stage;
+    this.layer = layer || this;
     this.listeners = new Map();
+    this.displayText = this.ellipsisText();
+    this.image = null;
+  }
+  ellipsisText() {
+    let displayText = this.text;
+    let ellipsis = "...";
+    let width = this.ctx.measureText(displayText).width;
+    let ellipsisWidth = this.ctx.measureText(ellipsis).width;
+    const maxWidth = this.width - 25;
+    if (maxWidth < width) {
+      let len = displayText.length;
+      while (width + ellipsisWidth > maxWidth && len > 0) {
+        displayText = displayText.substring(0, len);
+        width = this.ctx.measureText(displayText).width;
+        len -= 1;
+      }
+      return displayText + ellipsis;
+    }
+    return displayText;
+  }
+  drawText() {
+    this.ctx.fillStyle = "#000";
+    this.ctx.font = "16px sans-serif";
+    this.ctx.textAlign = "center";
+    this.ctx.textBaseline = "middle";
+    this.ctx.fillText(
+      this.displayText,
+      this.x + this.width / 2,
+      this.y + this.height / 2,
+      this.width,
+    );
+  }
+
+  drawImage() {
+    const size = 35;
+    //垂直可见
+    if (this.stage.height >= this.y && this.y >= 0) {
+      if (this.image) {
+        this._drawImage(this.image);
+        return;
+      }
+      const img = new Image();
+      img.src = this.text;
+      img.onload = () => {
+        this.image = img;
+        this._drawImage(this.image);
+      };
+    }
+  }
+  _drawImage(image, size = 35) {
+    this.ctx.drawImage(
+      image,
+      this.x + (this.width - size) / 2,
+      this.y + (this.height - size) / 2,
+      size,
+      size,
+    );
+  }
+  commonTrigger(type = "", args = {}) {
+    let currentElement = null;
+    this.children.forEach((elment) => {
+      elment.isCurrentElement(elment, args) && (currentElement = elment);
+    });
+    currentElement && currentElement.trigger(type, args);
   }
   update({
     x = this.x,
