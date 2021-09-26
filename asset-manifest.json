@@ -1,22 +1,22 @@
 {
   "files": {
     "main.css": "/canvas-table-demo/static/css/main.21045d68.chunk.css",
-    "main.js": "/canvas-table-demo/static/js/main.9bebc85a.chunk.js",
-    "main.js.map": "/canvas-table-demo/static/js/main.9bebc85a.chunk.js.map",
+    "main.js": "/canvas-table-demo/static/js/main.ae6a3043.chunk.js",
+    "main.js.map": "/canvas-table-demo/static/js/main.ae6a3043.chunk.js.map",
     "runtime-main.js": "/canvas-table-demo/static/js/runtime-main.cd6bf453.js",
     "runtime-main.js.map": "/canvas-table-demo/static/js/runtime-main.cd6bf453.js.map",
-    "static/js/2.7a2d280c.chunk.js": "/canvas-table-demo/static/js/2.7a2d280c.chunk.js",
-    "static/js/2.7a2d280c.chunk.js.map": "/canvas-table-demo/static/js/2.7a2d280c.chunk.js.map",
+    "static/js/2.23aa00e2.chunk.js": "/canvas-table-demo/static/js/2.23aa00e2.chunk.js",
+    "static/js/2.23aa00e2.chunk.js.map": "/canvas-table-demo/static/js/2.23aa00e2.chunk.js.map",
     "static/js/3.30195f46.chunk.js": "/canvas-table-demo/static/js/3.30195f46.chunk.js",
     "static/js/3.30195f46.chunk.js.map": "/canvas-table-demo/static/js/3.30195f46.chunk.js.map",
     "index.html": "/canvas-table-demo/index.html",
     "static/css/main.21045d68.chunk.css.map": "/canvas-table-demo/static/css/main.21045d68.chunk.css.map",
-    "static/js/2.7a2d280c.chunk.js.LICENSE.txt": "/canvas-table-demo/static/js/2.7a2d280c.chunk.js.LICENSE.txt"
+    "static/js/2.23aa00e2.chunk.js.LICENSE.txt": "/canvas-table-demo/static/js/2.23aa00e2.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.cd6bf453.js",
-    "static/js/2.7a2d280c.chunk.js",
+    "static/js/2.23aa00e2.chunk.js",
     "static/css/main.21045d68.chunk.css",
-    "static/js/main.9bebc85a.chunk.js"
+    "static/js/main.ae6a3043.chunk.js"
   ]
 }
