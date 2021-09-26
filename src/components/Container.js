@@ -7,9 +7,9 @@ import Stage from "./Stage";
 export default class Container extends Component {
   constructor(props) {
     super(props);
-
-    this.wrapper = createRef();
-    this.inputLayer = createRef();
+    this.wrapperRef = createRef();
+    this.inputLayerRef = createRef();
+    this.scrollEndRef = createRef();
     this.columns = props.columns;
     this.dataSource = props.dataSource;
     this.width = 650;
@@ -23,6 +23,10 @@ export default class Container extends Component {
       inputLayerVisibleState: false,
       currentText: "",
     };
+  }
+  static getDerivedStateFromProps(props, state) {
+    console.log(props, state);
+    return null;
   }
   componentDidMount() {
     const headerRow = new Layer({
@@ -38,7 +42,7 @@ export default class Container extends Component {
       dataSource: {},
     });
     let bodyRows = [];
-    this.stage.insertCanvas(this.wrapper);
+    this.stage.insertCanvas(this.wrapperRef);
 
     this._createCeil({
       layer: headerRow,
@@ -149,13 +153,28 @@ export default class Container extends Component {
     });
     if (show) {
       setTimeout(() => {
-        this.inputLayer.focus();
+        this.inputLayerRef.focus();
       });
     }
   }
   handleScroll = _.throttle((e) => {
     const { scrollTop, scrollLeft } = e.target;
+    const {
+      onScrollToTop = function () {},
+      onScrollToBottom = function () {},
+    } = this.props;
+
     this.stage.render(scrollLeft, scrollTop);
+
+    if (scrollTop === 0) {
+      onScrollToTop();
+    }
+    const { bottom: endBottom } = this.scrollEndRef.getBoundingClientRect();
+    const { bottom: wrapperBottom } = e.target.getBoundingClientRect();
+
+    if (endBottom - wrapperBottom === 0) {
+      onScrollToBottom();
+    }
   }, 10);
   commonTrigger(event = "", e) {
     const { left, top } = e.target.getBoundingClientRect();
@@ -195,7 +214,7 @@ export default class Container extends Component {
     return (
       <div
         className="wrapper"
-        ref={(el) => (this.wrapper = el)}
+        ref={(el) => (this.wrapperRef = el)}
         onClick={this.handleClick.bind(this)}
         onBlur={this.handleBlur.bind(this)}
         onDoubleClick={this.handleDoubleClick.bind(this)}
@@ -213,11 +232,12 @@ export default class Container extends Component {
           >
             <div
               className="wrapper-scroll-end"
+              ref={(el) => (this.scrollEndRef = el)}
               style={this.calculateScrollEndPosition()}
             ></div>
             <div
               className="input-placeholder"
-              ref={(el) => (this.inputLayer = el)}
+              ref={(el) => (this.inputLayerRef = el)}
               style={inputLayerStyle}
               onClick={(e) => {
                 e.preventDefault();

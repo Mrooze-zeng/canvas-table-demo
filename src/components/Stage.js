@@ -18,14 +18,28 @@ export default class Stage {
     return this;
   }
   render(x = 0, y = 0) {
-    this.ctx.save();
-    this.ctx.clearRect(0, 0, this.width, this.height);
-    this.children.forEach((layer) => {
+    this.getViewportChildren().forEach((layer) => {
       !layer.parent && layer.setParent(this);
       layer.updatePosition(x, y);
       layer.draw(x, y);
     });
-    this.ctx.restore();
+  }
+  getViewportChildren() {
+    //viewport 上下200条
+    const allBodyLayer = this.children.filter((layer) => layer.name === "body");
+    const headerLayer = this.children.filter(
+      (layer) => layer.name === "header",
+    );
+    const i = allBodyLayer.findIndex((layer) => {
+      return layer.y >= 0 && layer.y <= this.height;
+    });
+    const upChildren = allBodyLayer.slice(
+      i,
+      Math.min(100, allBodyLayer.length - i) + i,
+    );
+    const downChildren = allBodyLayer.slice(Math.max(0, i - 100), i);
+    const ouput = downChildren.concat(upChildren);
+    return ouput.concat(headerLayer);
   }
   insertCanvas(wrapper = HTMLElement) {
     if (!wrapper.querySelector("canvas")) {

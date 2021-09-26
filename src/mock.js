@@ -57,10 +57,9 @@ export const columns = [
   },
 ];
 
-export const dataSource = (function (size = 50) {
-  let output = [];
+export const dataSourceCreator = function (source = [], size = 1000) {
   for (let i = 0; i < size; i++) {
-    output.push({
+    source.push({
       id: "" + i, // faker.datatype.uuid(),
       avatar: faker.image.avatar(),
       province: faker.address.state(),
@@ -72,5 +71,7 @@ export const dataSource = (function (size = 50) {
       address: faker.address.streetAddress(),
     });
   }
-  return output;
-})(1000);
+  return source;
+};
+
+export const dataSource = dataSourceCreator([]);

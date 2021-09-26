@@ -16,13 +16,18 @@ export default class Ceil extends Base {
       console.log("hover...", args);
     });
   }
-
-  draw(x = 0, y = 0) {
-    this.ctx.fillStyle = this.color;
-    this.ctx.fillRect(this.x, this.y, this.width, this.height);
+  drawBorder() {
     this.ctx.strokeStyle = "white";
     this.ctx.lineWidth = 0.5;
     this.ctx.strokeRect(this.x, this.y, this.width, this.height);
+  }
+  drawBackground() {
+    this.ctx.fillStyle = this.color;
+    this.ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+  draw(x = 0, y = 0) {
+    this.drawBackground();
+    this.drawBorder();
     if (this.column.type === "image" && this.parent.name === "body") {
       super.drawImage();
     } else {
