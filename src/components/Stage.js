@@ -4,8 +4,10 @@ export default class Stage {
     this.width = width * ratio;
     this.height = height * ratio;
     this.canvas = document.createElement("canvas");
-    this.canvas.width = width;
-    this.canvas.height = height;
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
+    this.canvas.style.width = width + "px";
+    this.canvas.style.height = height + "px";
     this.ctx = this.canvas.getContext("2d");
     this.children = [];
     this.ctx.scale(ratio, ratio);

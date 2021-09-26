@@ -187,7 +187,7 @@ export default class Container extends Component {
   calculateScrollEndPosition() {
     return {
       top: this._getTotalHeight() + 40 + this.dataSource.length,
-      left: this._getTotalWidth() - this.stage.width / 2 + 5, //- (this._getTotalWidth() % this.stage.width) - 13,
+      left: this._getTotalWidth() - this.width / 2 + 5, //- (this._getTotalWidth() % this.stage.width) - 13,
     };
   }
   render() {
