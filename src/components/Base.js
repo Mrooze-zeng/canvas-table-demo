@@ -69,7 +69,6 @@ export default class Base {
   }
 
   drawImage() {
-    const size = 35;
     //垂直可见
     if (this.stage.height + this.stage.height / 2 >= this.y && this.y >= 0) {
       if (this.image) {
