@@ -259,7 +259,14 @@ export default class Container extends Component {
         </div>
         <button
           onClick={() => {
-            console.log(this.stage.getDataSource());
+            const filename = window.prompt(
+              "Please enter filename!",
+              "test.csv",
+            );
+            window.GoInstanceWorker.postMessage({
+              type: "getExcel",
+              message: [this.stage.getDataSource(), filename],
+            });
           }}
         >
           export dataSource
