@@ -1,4 +1,10 @@
 export default class Base {
+  image = null;
+  listeners = new Map();
+  visibleX = 0;
+  visibleY = 0;
+  actualWidth = 0;
+  actualHeight = 0;
   constructor({
     name = "",
     type = "",
@@ -37,9 +43,7 @@ export default class Base {
     this.dataSource = dataSource;
     this.stage = stage;
     this.layer = layer || this;
-    this.listeners = new Map();
     this.displayText = this.ellipsisText();
-    this.image = null;
     this.setEvents(events);
   }
   setEvents(events = {}) {
@@ -48,6 +52,57 @@ export default class Base {
         events[name](this);
       });
     });
+  }
+  isVisible() {
+    return (
+      (this.x > 0 && this.x <= this.stage.width) ||
+      (this.y > 0 && this.y <= this.stage.height)
+    );
+  }
+  getHeadersHeight() {
+    const headers = this.stage.getHeaders();
+    return headers.reduce((height, header) => {
+      height += header.height;
+      return height;
+    }, 0);
+  }
+  getFixedCeilsWidth() {
+    const ceils = this.layer.getCeils();
+    return ceils.reduce((width, ceil) => {
+      if (ceil.fixed) {
+        width += ceil.width;
+      }
+      return width;
+    }, 0);
+  }
+  calculateActualSize() {
+    this.visibleX = this.x;
+    this.visibleY = this.y;
+    this.actualWidth = this.width;
+    this.actualHeight = this.height;
+    if (!this.fixed) {
+      //height
+      const headersHeight = this.getHeadersHeight();
+      const heightDiff = headersHeight - this.y;
+      if (heightDiff > 0) {
+        this.actualHeight = this.height - heightDiff;
+        this.visibleY = this.y + heightDiff;
+      }
+
+      //width
+      const fixedCeilsWidth = this.getFixedCeilsWidth();
+      const widthDiff = fixedCeilsWidth - this.x;
+      if (widthDiff > 0) {
+        this.actualWidth = this.width - widthDiff;
+        this.visibleX = this.x + widthDiff;
+      }
+    }
+    if (this.stage.height - this.y < this.height) {
+      this.actualHeight = this.stage.height - this.y;
+    }
+    if (this.stage.width - this.x < this.width) {
+      this.actualWidth = this.stage.width - this.x;
+    }
   }
   ellipsisText() {
     let displayText = this.text;
@@ -81,7 +136,7 @@ export default class Base {
 
   drawImage() {
     //垂直可见
-    if (this.stage.height + this.stage.height / 2 >= this.y && this.y >= 0) {
+    if (this.isVisible()) {
       if (this.image) {
         this._drawImage(this.image);
         return;
@@ -95,13 +150,12 @@ export default class Base {
     }
   }
   _drawImage(image, size = 35) {
-    this.ctx.drawImage(
-      image,
-      this.x + (this.width - size) / 2,
-      this.y + (this.height - size) / 2,
-      size,
-      size,
-    );
+    let x = this.x + (this.width - size) / 2;
+    let y = this.y + (this.height - size) / 2;
+    if (this.y + this.height / 2 < this.getHeadersHeight()) {
+      return;
+    }
+    this.ctx.drawImage(image, x, y, size, size);
   }
   updatePosition(x = 0, y = 0) {
     switch (this.fixed) {
@@ -121,6 +175,7 @@ export default class Base {
         this.x = this.originX - x;
         this.y = this.originY - y;
     }
+    this.calculateActualSize();
     this.trigger("onPositionUpdate");
   }
   isCurrentElement(

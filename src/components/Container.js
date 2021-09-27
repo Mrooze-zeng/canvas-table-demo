@@ -1,5 +1,6 @@
 import _ from "lodash";
 import { Component, createRef } from "react";
+import { COLUMN_TYPE } from "../columns";
 import Layer from "./Layer";
 import Stage from "./Stage";
 
@@ -25,6 +26,7 @@ export default class Container extends Component {
         top: 0,
         left: 0,
       },
+      currentCeil: null,
     };
   }
   static getDerivedStateFromProps(props, state) {
@@ -33,7 +35,7 @@ export default class Container extends Component {
   }
   componentDidMount() {
     const headerRow = new Layer({
-      type: "header",
+      type: Stage.LayerType.HEADER,
       x: 0,
       y: 0,
       stage: this.stage,
@@ -53,6 +55,7 @@ export default class Container extends Component {
       dataSource: this.dataSource,
       columns: this.columns,
       layerOptions: {
+        type: Stage.LayerType.BODY,
         width: this._getTotalWidth(),
         y: 45,
         color: "green",
@@ -82,14 +85,23 @@ export default class Container extends Component {
   }
   handleCeilClick(ceil = {}) {
     const { dataSource = {}, image, column = {} } = ceil;
-    if (column.type === "image") {
-      document.body.querySelectorAll("img").forEach((img) => {
-        img.remove();
-      });
-      document.body.appendChild(image);
-      alert(`click on ${dataSource.name}'s avatar`);
-    } else {
-      this.updateInputLayer(ceil);
+    switch (column.type) {
+      case COLUMN_TYPE.IMAGE:
+        document.body.querySelectorAll("img").forEach((img) => {
+          img.remove();
+        });
+        document.body.appendChild(image);
+        alert(`click on ${dataSource.name}'s avatar`);
+        break;
+      case COLUMN_TYPE.EDITABLE:
+        this.updateInputLayer(ceil);
+        this.setState({ currentCeil: ceil });
+        break;
+      case COLUMN_TYPE.FUNCTION_BOX:
+        alert("Functions up comming...");
+        break;
+      default:
+        break;
     }
     console.log("click on ceil: ", ceil);
   }
@@ -98,16 +110,23 @@ export default class Container extends Component {
     inputLayerVisibleState && this.updateInputLayer(ceil, false);
   }
   updateInputLayer(
-    { width = 0, height = 0, x = 0, y = 0, text = "", color = "orange" },
+    {
+      actualWidth = 0,
+      actualHeight = 0,
+      visibleX = 0,
+      visibleY = 0,
+      text = "",
+      color = "orange",
+    },
     show = true,
   ) {
     this.setState({
       inputLayerStyle: {
         display: show ? "inline-block" : "none",
-        width: width,
-        height: height,
-        top: y,
-        left: x,
+        width: actualWidth,
+        height: actualHeight,
+        top: visibleY,
+        left: visibleX,
         zIndex: 1,
         background: color,
       },
@@ -166,70 +185,86 @@ export default class Container extends Component {
       return;
     }
     switch (currentCeil.layer.type) {
-      case "header":
+      case Stage.LayerType.HEADER:
         this.wrapperRef.style.cursor = "auto";
         break;
-      case "body":
-        if (currentCeil.column.type === "image") {
+      case Stage.LayerType.BODY:
+        if (currentCeil.column.type === COLUMN_TYPE.IMAGE) {
           this.wrapperRef.style.cursor = "pointer";
-        } else {
+        } else if (currentCeil.column.type === COLUMN_TYPE.EDITABLE) {
           this.wrapperRef.style.cursor = "text";
+        } else {
+          this.wrapperRef.style.cursor = "auto";
         }
         break;
       default:
         this.wrapperRef.style.cursor = "auto";
     }
-  }, 10);
+  }, 50);
   handleMouseEnter = _.debounce((e) => {
     // this.wrapperRef.style.cursor = "text";
   }, 100);
   handleMouseOut = _.debounce((e) => {
     this.wrapperRef.style.cursor = "auto";
   }, 100);
+  handleUpdateCeilData(e) {
+    const { currentCeil } = this.state;
+    currentCeil.updateValue(this.inputLayerRef.textContent);
+  }
   render() {
     const { inputLayerStyle, currentText, scrollEndPosition } = this.state;
     return (
-      <div
-        className="wrapper"
-        ref={(el) => (this.wrapperRef = el)}
-        onClick={this.handleClick.bind(this)}
-        onBlur={this.handleBlur.bind(this)}
-        onDoubleClick={this.handleDoubleClick.bind(this)}
-        onContextMenu={this.handleContextMenu.bind(this)}
-        onMouseMove={this.handleMouseMove.bind(this)}
-        onMouseEnter={this.handleMouseEnter.bind(this)}
-        onMouseOut={this.handleMouseOut.bind(this)}
-      >
-        <div className="wrapper-scroll">
-          <div
-            className="wrapper-scroll-inner"
-            style={{
-              width: this.width + 10,
-              height: this.height + 10,
-            }}
-            onScroll={this.handleScroll.bind(this)}
-          >
+      <>
+        <div
+          className="wrapper"
+          ref={(el) => (this.wrapperRef = el)}
+          onClick={this.handleClick.bind(this)}
+          onBlur={this.handleBlur.bind(this)}
+          onDoubleClick={this.handleDoubleClick.bind(this)}
+          onContextMenu={this.handleContextMenu.bind(this)}
+          onMouseMove={this.handleMouseMove.bind(this)}
+          onMouseEnter={this.handleMouseEnter.bind(this)}
+          onMouseOut={this.handleMouseOut.bind(this)}
+        >
+          <div className="wrapper-scroll">
             <div
-              className="wrapper-scroll-end"
-              ref={(el) => (this.scrollEndRef = el)}
-              style={scrollEndPosition}
-            ></div>
-            <div
-              className="input-placeholder"
-              ref={(el) => (this.inputLayerRef = el)}
-              style={inputLayerStyle}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+              className="wrapper-scroll-inner"
+              style={{
+                width: this.width + 10,
+                height: this.height + 10,
               }}
-              contentEditable={true}
-              suppressContentEditableWarning={true}
+              onScroll={this.handleScroll.bind(this)}
             >
-              {currentText}
+              <div
+                className="wrapper-scroll-end"
+                ref={(el) => (this.scrollEndRef = el)}
+                style={scrollEndPosition}
+              ></div>
+              <div
+                className="input-placeholder"
+                ref={(el) => (this.inputLayerRef = el)}
+                style={inputLayerStyle}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onBlur={this.handleUpdateCeilData.bind(this)}
+                contentEditable={true}
+                suppressContentEditableWarning={true}
+              >
+                {currentText}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+        <button
+          onClick={() => {
+            console.log(this.stage.getDataSource());
+          }}
+        >
+          export dataSource
+        </button>
+      </>
     );
   }
 }

@@ -1,6 +1,7 @@
 import "./App.css";
+import { columns } from "./columns";
 import Container from "./components/Container";
-import { columns, dataSource } from "./mock";
+import { dataSource } from "./mock";
 
 function App() {
   const sortFixedColumns = function (columns = []) {

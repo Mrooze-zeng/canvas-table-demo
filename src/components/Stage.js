@@ -2,6 +2,13 @@ import Ceil from "./Ceil";
 import Layer from "./Layer";
 
 export default class Stage {
+  static LayerType = {
+    HEADER: Symbol("header"),
+    BODY: Symbol("body"),
+    CEIL: Symbol("ceil"),
+  };
+  children = [];
+  visibleRange = { x: 0, y: 0 };
   constructor({ width = 250, height = 250 }) {
     let ratio = window.devicePixelRatio || 1;
     this.width = width * ratio;
@@ -12,7 +19,6 @@ export default class Stage {
     this.canvas.style.width = width + "px";
     this.canvas.style.height = height + "px";
     this.ctx = this.canvas.getContext("2d");
-    this.children = [];
     this.ctx.scale(ratio, ratio);
   }
   addLayer(...layers) {
@@ -21,31 +27,49 @@ export default class Stage {
   }
   render(x = 0, y = 0) {
     this.ctx.clearRect(0, 0, this.width, this.height);
-    this.getViewportChildren().forEach((layer) => {
+    this.getViewportLayers(100).forEach((layer) => {
       layer.draw(x, y);
     });
   }
-  getViewportChildren(size = 100) {
-    //viewport 上下200条
-    const allBodyLayer = this.children.filter((layer) => layer.type === "body");
-    const headerLayer = this.children.filter(
-      (layer) => layer.type === "header",
+  getHeaders() {
+    return this.children.filter(
+      (layer) => layer.type === Stage.LayerType.HEADER,
     );
-    const i = allBodyLayer.findIndex((layer) => {
+  }
+  getBodys() {
+    return this.children.filter((layer) => layer.type === Stage.LayerType.BODY);
+  }
+  getViewportLayers(size = 0) {
+    //viewport 上下200条
+    const allBodyLayer = this.getBodys();
+    const headerLayer = this.getHeaders();
+    const firstLayerIndex = allBodyLayer.findIndex((layer) => {
       return layer.y >= 0 && layer.y <= this.height;
     });
-    const upChildren = allBodyLayer.slice(
-      i,
-      Math.min(size, allBodyLayer.length - i) + i,
+    let lastLayerIndex = allBodyLayer.findIndex((layer) => {
+      return layer.y >= this.height;
+    });
+    if (lastLayerIndex < 0) {
+      lastLayerIndex = this.children.length - 1;
+    }
+    const output = allBodyLayer.slice(
+      Math.max(0, firstLayerIndex - size),
+      Math.min(this.children.length, lastLayerIndex + size),
     );
-    const downChildren = allBodyLayer.slice(Math.max(0, i - size), i);
-    const ouput = downChildren.concat(upChildren);
-    return ouput.concat(headerLayer);
+    return output.concat(headerLayer);
   }
   getCurrentLayer({ x = 0, y = 0 }) {
     let currentLayer = null;
-    this.getViewportChildren(25).forEach((layer) => {
-      layer.isCurrentElement(layer, { x, y }) && (currentLayer = layer);
+    const viewportLayers = this.getViewportLayers();
+    viewportLayers.forEach((layer, index) => {
+      if (layer.isCurrentElement(layer, { x, y })) {
+        layer.type === Stage.LayerType.BODY &&
+          layer.setNeighborLayer(
+            viewportLayers[index - 1],
+            viewportLayers[index + 1],
+          );
+        currentLayer = layer;
+      }
     });
     return currentLayer;
   }
@@ -73,12 +97,12 @@ export default class Stage {
   }
   setFixedState({ type = "", fixed = "" }, isFixed = false) {
     switch (type) {
-      case "header":
+      case Stage.LayerType.HEADER:
         if (isFixed) {
           return "top,left";
         }
         return fixed;
-      case "body":
+      case Stage.LayerType.BODY:
         if (isFixed) {
           return "left";
         }
@@ -87,7 +111,12 @@ export default class Stage {
         return fixed;
     }
   }
-  createCeils({ layer = null, events = {}, type = "ceil", name = "" }) {
+  createCeils({
+    layer = null,
+    events = {},
+    type = Stage.LayerType.CEIL,
+    name = "",
+  }) {
     let ceils = [];
     const columns = layer.columns;
     const dataSource = layer.dataSource;
@@ -112,7 +141,7 @@ export default class Stage {
           fixed: this.setFixedState(layer, columns[i].fixed),
           column: columns[i],
           columns: columns,
-          dataSource: dataSource,
+          dataSource: layer.dataSource,
           events: events,
         }),
       );
@@ -128,7 +157,7 @@ export default class Stage {
     let rows = [];
     const {
       name = "",
-      type = "body",
+      type = Stage.LayerType.BODY,
       width = 100,
       height = 45,
       color = "white",
@@ -157,6 +186,15 @@ export default class Stage {
       rows.push(row);
     }
     return rows;
+  }
+  getDataSource() {
+    let dataSource = [];
+    this.children.forEach((layer) => {
+      if (layer.dataSource && Object.keys(layer.dataSource).length) {
+        dataSource.push(layer.dataSource);
+      }
+    });
+    return dataSource;
   }
   insertCanvas(wrapper = HTMLElement) {
     if (!wrapper.querySelector("canvas")) {
