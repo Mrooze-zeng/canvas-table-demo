@@ -1,22 +1,25 @@
 export default class Base {
   constructor({
     name = "",
+    type = "",
     text = "",
     x = 0,
     y = 0,
     width = 100,
     height = 45,
     color = "yellow",
+    borderColor = "white",
+    lineWidth = 1,
     fixed = "",
     columns = [],
     column = {},
     dataSource = {},
     stage = {},
     layer = null,
-    onFocus = function () {},
-    onScroll = function () {},
+    events = {},
   }) {
     this.name = name;
+    this.type = type;
     this.text = text;
     this.x = x;
     this.y = y;
@@ -26,17 +29,25 @@ export default class Base {
     this.height = height;
     this.ctx = stage.ctx;
     this.color = color;
+    this.borderColor = borderColor;
+    this.lineWidth = lineWidth;
     this.fixed = fixed;
     this.columns = columns;
     this.column = column;
     this.dataSource = dataSource;
-    this.onFocus = onFocus;
-    this.onScroll = onScroll;
     this.stage = stage;
     this.layer = layer || this;
     this.listeners = new Map();
     this.displayText = this.ellipsisText();
     this.image = null;
+    this.setEvents(events);
+  }
+  setEvents(events = {}) {
+    Object.keys(events).forEach((name) => {
+      this.on(name, () => {
+        events[name](this);
+      });
+    });
   }
   ellipsisText() {
     let displayText = this.text;
@@ -92,27 +103,6 @@ export default class Base {
       size,
     );
   }
-  commonTrigger(type = "", args = {}) {
-    let currentElement = null;
-    this.children.forEach((elment) => {
-      elment.isCurrentElement(elment, args) && (currentElement = elment);
-    });
-    currentElement && currentElement.trigger(type, args);
-  }
-  update({
-    x = this.x,
-    y = this.y,
-    width = this.width,
-    height = this.height,
-    color = this.color,
-  }) {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.color = color;
-    this.parent && this.parent.draw();
-  }
   updatePosition(x = 0, y = 0) {
     switch (this.fixed) {
       case "top":
@@ -131,10 +121,7 @@ export default class Base {
         this.x = this.originX - x;
         this.y = this.originY - y;
     }
-    this.onScroll(this);
-  }
-  setParent(parent = null) {
-    this.parent = parent;
+    this.trigger("onPositionUpdate");
   }
   isCurrentElement(
     element = { x: 0, y: 0, height: 0, width: 0 },
@@ -160,6 +147,6 @@ export default class Base {
       function () {
         return false;
       }
-    )(name, ...args);
+    )(name, this, ...args);
   }
 }

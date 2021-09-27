@@ -1,3 +1,6 @@
+import Ceil from "./Ceil";
+import Layer from "./Layer";
+
 export default class Stage {
   constructor({ width = 250, height = 250 }) {
     let ratio = window.devicePixelRatio || 1;
@@ -13,22 +16,20 @@ export default class Stage {
     this.ctx.scale(ratio, ratio);
   }
   addLayer(...layers) {
-    this.children = this.children.concat(layers).reverse();
-    this.render();
+    this.children = this.children.concat(layers);
     return this;
   }
   render(x = 0, y = 0) {
+    this.ctx.clearRect(0, 0, this.width, this.height);
     this.getViewportChildren().forEach((layer) => {
-      !layer.parent && layer.setParent(this);
-      layer.updatePosition(x, y);
       layer.draw(x, y);
     });
   }
   getViewportChildren(size = 100) {
     //viewport 上下200条
-    const allBodyLayer = this.children.filter((layer) => layer.name === "body");
+    const allBodyLayer = this.children.filter((layer) => layer.type === "body");
     const headerLayer = this.children.filter(
-      (layer) => layer.name === "header",
+      (layer) => layer.type === "header",
     );
     const i = allBodyLayer.findIndex((layer) => {
       return layer.y >= 0 && layer.y <= this.height;
@@ -41,19 +42,121 @@ export default class Stage {
     const ouput = downChildren.concat(upChildren);
     return ouput.concat(headerLayer);
   }
-  getCurrentCeil({ x = 0, y = 0 }) {
+  getCurrentLayer({ x = 0, y = 0 }) {
     let currentLayer = null;
-    let currentElement = null;
     this.getViewportChildren(25).forEach((layer) => {
       layer.isCurrentElement(layer, { x, y }) && (currentLayer = layer);
     });
+    return currentLayer;
+  }
+  getCurrentCeil({ x = 0, y = 0 }) {
+    let currentLayer = this.getCurrentLayer({ x, y });
     if (currentLayer) {
-      currentLayer.children.forEach((element) => {
-        element.isCurrentElement(element, { x, y }) &&
-          (currentElement = element);
-      });
+      return currentLayer.getCurrentCeil({ x, y });
     }
-    return currentElement;
+    return null;
+  }
+  triggerEventToCeil(event = "", position = { x: 0, y: 0 }, data = {}) {
+    const ceil = this.getCurrentCeil(position);
+    if (ceil) {
+      ceil.trigger(event, data);
+      ceil.layer.trigger(event, data);
+    }
+  }
+  setName(name = "", args) {
+    switch (typeof name) {
+      case "function":
+        return name(args);
+      default:
+        return String(name);
+    }
+  }
+  setFixedState({ type = "", fixed = "" }, isFixed = false) {
+    switch (type) {
+      case "header":
+        if (isFixed) {
+          return "top,left";
+        }
+        return fixed;
+      case "body":
+        if (isFixed) {
+          return "left";
+        }
+        return fixed;
+      default:
+        return fixed;
+    }
+  }
+  createCeils({ layer = null, events = {}, type = "ceil", name = "" }) {
+    let ceils = [];
+    const columns = layer.columns;
+    const dataSource = layer.dataSource;
+    for (let i = 0; i < columns.length; i++) {
+      let x = ceils.reduce((prev, curv, i) => {
+        prev += curv.width;
+        return prev;
+      }, 0);
+
+      ceils.push(
+        new Ceil({
+          name: this.setName(name, i),
+          type: type,
+          text: dataSource[columns[i].key] || columns[i].title,
+          x: x,
+          y: layer.y,
+          width: columns[i].width,
+          height: layer.height,
+          stage: this,
+          layer: layer,
+          color: layer.color,
+          fixed: this.setFixedState(layer, columns[i].fixed),
+          column: columns[i],
+          columns: columns,
+          dataSource: dataSource,
+          events: events,
+        }),
+      );
+    }
+    layer.add(...ceils).draw();
+  }
+  createRows({
+    dataSource = [],
+    columns = [],
+    layerOptions = {},
+    ceilOptions = {},
+  }) {
+    let rows = [];
+    const {
+      name = "",
+      type = "body",
+      width = 100,
+      height = 45,
+      color = "white",
+      x = 0,
+      y = 0,
+      events = {},
+    } = layerOptions;
+    for (let i = 0; i < dataSource.length; i++) {
+      let row = new Layer({
+        name: this.setName(name, i),
+        type: type,
+        x: x,
+        y: y + i * height,
+        stage: this,
+        width: width,
+        height: height,
+        color: color,
+        columns: columns,
+        dataSource: dataSource[i],
+        events: events,
+      });
+      this.createCeils({
+        layer: row,
+        ...ceilOptions,
+      });
+      rows.push(row);
+    }
+    return rows;
   }
   insertCanvas(wrapper = HTMLElement) {
     if (!wrapper.querySelector("canvas")) {
