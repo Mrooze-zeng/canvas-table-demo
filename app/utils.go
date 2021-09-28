@@ -65,16 +65,15 @@ func parserArgs(args []js.Value) ReceiveArgs {
 	}
 
 	tableOptions := TableOptions{}
-	err := json.Unmarshal([]byte(jsJSONStringify(args[0].Get("tableOptions"), "{}")), &tableOptions)
-	if err != nil {
+	if err := json.Unmarshal([]byte(jsJSONStringify(args[0].Get("tableOptions"), "{}")), &tableOptions); err != nil {
 		jsConsole("error", err.Error())
 		return *output
 	}
 	output.TableOptions = tableOptions
 
 	columns := []Columns{}
-	err = json.Unmarshal([]byte(jsJSONStringify(args[0].Get("columns"), "[]")), &columns)
-	if err != nil {
+
+	if err := json.Unmarshal([]byte(jsJSONStringify(args[0].Get("columns"), "[]")), &columns); err != nil {
 		jsConsole("error", err.Error())
 		return *output
 	}
@@ -83,8 +82,8 @@ func parserArgs(args []js.Value) ReceiveArgs {
 	output.Filename = args[0].Get("filename").String()
 
 	dataSource := []Info{}
-	err = json.Unmarshal([]byte(jsJSONStringify(args[0].Get("dataSource"), "{}")), &dataSource)
-	if err != nil {
+
+	if err := json.Unmarshal([]byte(jsJSONStringify(args[0].Get("dataSource"), "{}")), &dataSource); err != nil {
 		jsConsole("error", err.Error())
 		return *output
 	}
@@ -104,6 +103,6 @@ func indexToRuneString(index int) string {
 	return strings.Join(stringCollection, "")
 }
 
-func ceilPostion(col int, row int) string {
+func ceilAxis(col int, row int) string {
 	return fmt.Sprintf("%s%d", indexToRuneString(col), row)
 }

@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bytes"
+	"fmt"
 	"reflect"
 	"strings"
 	"syscall/js"
-	"text/template"
 	"time"
 
 	"github.com/xuri/excelize/v2"
@@ -25,122 +24,124 @@ func Excel() js.Func {
 			return nil
 		}
 
+		borderLeftStyle := excelize.Border{
+			Type:  "left",
+			Color: tableOptions.BorderColor,
+			Style: 1,
+		}
+		borderTopStyle := excelize.Border{
+			Type:  "top",
+			Color: tableOptions.BorderColor,
+			Style: 1,
+		}
+		borderRightStyle := excelize.Border{
+			Type:  "right",
+			Color: tableOptions.BorderColor,
+			Style: 1,
+		}
+		borderBottomStyle := excelize.Border{
+			Type:  "bottom",
+			Color: tableOptions.BorderColor,
+			Style: 1,
+		}
+		fontStyle := excelize.Font{
+			Size:   tableOptions.FontSize,
+			Family: tableOptions.FontFamily,
+			Color:  tableOptions.Color,
+		}
+		headerFillStyle := excelize.Fill{
+			Type:    "pattern",
+			Color:   []string{tableOptions.Header.BackgroundColor},
+			Pattern: 1,
+		}
+		bodyFillStyle := excelize.Fill{
+			Type:    "pattern",
+			Color:   []string{tableOptions.Body.BackgroundColor},
+			Pattern: 1,
+		}
+		alignmentStyle := excelize.Alignment{
+			Horizontal: tableOptions.TextAlign,
+			Vertical:   tableOptions.TextBaseline,
+			WrapText:   true,
+		}
+		protectionStyle := excelize.Protection{
+			Locked: true,
+		}
+
 		f := excelize.NewFile()
 
-		headerTpl := `
-		{
-			"border":[{
-				"type": "left",
-        "color": "{{.BorderColor}}",
-        "style": 1
-			},{
-				"type": "top",
-        "color": "{{.BorderColor}}",
-        "style": 1
-			},{
-				"type": "right",
-        "color": "{{.BorderColor}}",
-        "style": 1
-			},{
-				"type": "bottom",
-        "color": "{{.BorderColor}}",
-        "style": 1
-			}],
-			"font":{
-				"size":{{.FontSize}},
-				"family":"{{.FontFamily}}",
-				"color":"{{.Color}}"
+		sheetName := "Sheet1"
+
+		headerStyle, _ := f.NewStyle(&excelize.Style{
+			Border: []excelize.Border{
+				borderLeftStyle, borderTopStyle, borderRightStyle, borderBottomStyle,
 			},
-			"fill":{
-				"type":"pattern",
-				"color":["{{.Header.BackgroundColor}}"],
-				"pattern":1
+			Font:       &fontStyle,
+			Fill:       headerFillStyle,
+			Alignment:  &alignmentStyle,
+			Protection: &protectionStyle,
+		})
+
+		bodyStyle, _ := f.NewStyle(&excelize.Style{
+			Border: []excelize.Border{
+				borderLeftStyle, borderTopStyle, borderRightStyle, borderBottomStyle,
 			},
-			"alignment":{
-				"horizontal": "{{.TextAlign}}",
-				"vertical": "{{.TextBaseline}}",
-				"wrap_text": true
-			},
-			"protection":{
-				"locked":true
-			}
-		}
-		`
-		bodyTpl := `
-		{
-			"border":[{
-				"type": "left",
-        "color": "{{.BorderColor}}",
-        "style": 1
-			},{
-				"type": "top",
-        "color": "{{.BorderColor}}",
-        "style": 1
-			},{
-				"type": "right",
-        "color": "{{.BorderColor}}",
-        "style": 1
-			},{
-				"type": "bottom",
-        "color": "{{.BorderColor}}",
-        "style": 1
-			}],
-			"font":{
-				"size":{{.FontSize}},
-				"family":"{{.FontFamily}}",
-				"color":"{{.Color}}"
-			},
-			"fill":{
-				"type":"pattern",
-				"color":["{{.Body.BackgroundColor}}"],
-				"pattern":1
-			},
-			"alignment":{
-				"horizontal": "{{.TextAlign}}",
-				"vertical": "{{.TextBaseline}}",
-				"wrap_text": true
-			}
-		}
-		`
-		headerReader := bytes.Buffer{}
-		bodeTplReader := bytes.Buffer{}
+			Font:       &fontStyle,
+			Fill:       bodyFillStyle,
+			Alignment:  &alignmentStyle,
+			Protection: &protectionStyle,
+		})
 
-		headerT, _ := template.New("header-tpl").Parse(headerTpl)
-		headerT.Execute(&headerReader, tableOptions)
+		fixedLastIndex := 0
 
-		headerStyle, _ := f.NewStyle(headerReader.String())
-
-		bodyT, _ := template.New("body-tpl").Parse(bodyTpl)
-		bodyT.Execute(&bodeTplReader, tableOptions)
-
-		bodyStyle, _ := f.NewStyle(bodeTplReader.String())
-
-		index := f.NewSheet(filename)
-
-		f.SetCellStyle(filename, ceilPostion(0, 1), ceilPostion(len(columns)-1, 1), headerStyle)
+		f.SetCellStyle(sheetName, ceilAxis(0, 1), ceilAxis(len(columns)-1, 1), headerStyle)
+		f.SetRowHeight(sheetName, 1, float64(tableOptions.RowHeight))
 		for k, col := range columns {
-			f.SetCellValue(filename, ceilPostion(k, 1), col.Title)
-			f.SetRowHeight(filename, 1, float64(tableOptions.RowHeight))
-			f.SetColWidth(filename, indexToRuneString(k), indexToRuneString(k), float64(col.Width/4))
+			if col.Fixed {
+				fixedLastIndex = k
+			}
+			f.SetCellValue(sheetName, ceilAxis(k, 1), col.Title)
+			f.SetColWidth(sheetName, indexToRuneString(k), indexToRuneString(k), float64(col.Width/4))
 
 		}
-		f.SetCellStyle(filename, ceilPostion(0, 2), ceilPostion(len(columns)-1, len(dataSource)+1), bodyStyle)
+		f.SetCellStyle(sheetName, ceilAxis(0, 2), ceilAxis(len(columns)-1, len(dataSource)+1), bodyStyle)
 		for k, row := range dataSource {
-			f.SetRowHeight(filename, k+2, float64(tableOptions.RowHeight))
+			f.SetRowHeight(sheetName, k+2, float64(tableOptions.RowHeight))
 			for i, col := range columns {
 				rowReflect := reflect.ValueOf(row)
 				value := reflect.Indirect(rowReflect).FieldByName(strings.Title(col.Key))
 				if value.IsValid() {
-					f.SetCellValue(filename, ceilPostion(i, k+2), value)
+					f.SetCellValue(sheetName, ceilAxis(i, k+2), value)
 					if col.Type == 0 {
-						f.SetCellHyperLink(filename, ceilPostion(i, k+2), value.String(), "External")
+						f.SetCellHyperLink(sheetName, ceilAxis(i, k+2), value.String(), "External")
 					}
 				}
 			}
 		}
 
-		f.SetActiveSheet(index)
-		f.DeleteSheet("Sheet1")
+		if err := f.SetSheetViewOptions(sheetName, 0, excelize.ShowGridLines(false)); err != nil {
+			jsConsole("error", err.Error())
+			return nil
+		}
+
+		panes := `{
+			"freeze": true,
+			"split": false,
+			"x_split": {{x_split}},
+			"y_split": 1,
+			"top_left_cell": "{{top_left_cell}}",
+			"active_pane": "topRight",
+			"panes": [
+				{
+						"sqref": "{{sqref}}",
+						"active_cell": "{{sqref}}",
+						"pane": "topRight"
+				}
+			]}`
+		panes = strings.ReplaceAll(panes, "{{x_split}}", fmt.Sprint(fixedLastIndex+1))
+		panes = strings.ReplaceAll(panes, "{{top_left_cell}}", ceilAxis(fixedLastIndex+1, 2))
+		panes = strings.ReplaceAll(panes, "{{sqref}}", ceilAxis(len(columns)-1, len(dataSource)+1))
+		f.SetPanes(sheetName, panes)
 
 		f.SetDocProps(&excelize.DocProperties{
 			Created:        time.Now().Format(time.RFC3339),
@@ -157,9 +158,12 @@ func Excel() js.Func {
 			Version:        "1.0.0",
 		})
 
+		f.SetSheetName(sheetName, filename)
+
 		buf, err := f.WriteToBuffer()
 
 		if err != nil {
+			jsConsole("error", err.Error())
 			return nil
 		}
 

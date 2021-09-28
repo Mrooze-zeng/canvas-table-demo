@@ -41,9 +41,7 @@ func Csv() js.Func {
 
 		defer w.Flush()
 
-		err := w.WriteAll(data)
-
-		if err != nil {
+		if err := w.WriteAll(data); err != nil {
 			jsConsole("error", err.Error())
 			return nil
 		}
