@@ -6,6 +6,7 @@ import (
 	"strings"
 	"syscall/js"
 	"text/template"
+	"time"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -140,6 +141,21 @@ func Excel() js.Func {
 
 		f.SetActiveSheet(index)
 		f.DeleteSheet("Sheet1")
+
+		f.SetDocProps(&excelize.DocProperties{
+			Created:        time.Now().Format(time.RFC3339),
+			Creator:        "Mrooze Zeng",
+			Description:    "This file created by Mrooze Zeng",
+			Identifier:     "xlsx",
+			Keywords:       "Spreadsheet",
+			LastModifiedBy: "Mrooze Zeng",
+			Modified:       time.Now().Format(time.RFC3339),
+			Revision:       "0",
+			Subject:        filename,
+			Title:          filename,
+			Language:       js.Global().Get("navigator").Get("language").String(),
+			Version:        "1.0.0",
+		})
 
 		buf, err := f.WriteToBuffer()
 
