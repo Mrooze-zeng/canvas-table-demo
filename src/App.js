@@ -1,10 +1,28 @@
-import { useEffect } from "react";
+import { createRef, useEffect } from "react";
 import "./App.css";
 import { columns } from "./columns";
 import Container from "./components/Container";
 import { dataSource } from "./mock";
+import { createDownloadLink } from "./utils";
 
 function App() {
+  let cantainerRef = createRef();
+  const tableOptions = {
+    borderLineWidth: 1,
+    borderColor: "white",
+    rowHeight: 45,
+    fontFamily: "sans-serif",
+    textAlign: "center",
+    textBaseline: "middle",
+    fontSize: "16px",
+    color: "#000",
+    header: {
+      backgroundColor: "orange",
+    },
+    body: {
+      backgroundColor: "green",
+    },
+  };
   const sortFixedColumns = function (columns = []) {
     let ouput = columns.filter((col) => col.fixed);
     return ouput.concat(columns.filter((col) => !col.fixed));
@@ -15,28 +33,16 @@ function App() {
   const handleScrollToBottom = function () {
     console.log("to the bottom");
   };
-  const createDownloadLink = function (url = "", filename = "") {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  };
+
   useEffect(() => {
     window.GoInstanceWorker.addEventListener(
       "message",
       function ({ data = {} }) {
         const { type, message } = data;
-        if (type === "getExcel" && message) {
-          const url = URL.createObjectURL(
-            new Blob([message.data.buffer], {
-              type: message.type,
-            }),
-          );
-          console.log(data);
-          createDownloadLink(url, message.filename);
-          URL.revokeObjectURL(url);
+        if ((type === "getCsv" || type === "getExcel") && message) {
+          setTimeout(() => {
+            createDownloadLink(message.url, message.filename);
+          });
         }
       },
     );
@@ -44,11 +50,46 @@ function App() {
   return (
     <>
       <Container
+        ref={(el) => (cantainerRef = el)}
         columns={sortFixedColumns(columns)}
         dataSource={dataSource}
         onScrollToTop={handleScrollToTop}
         onScrollToBottom={handleScrollToBottom}
+        options={tableOptions}
       />
+      <div>
+        <button
+          style={{ marginRight: 15 }}
+          onClick={() => {
+            const filename = window.prompt("Please enter filename!", "test");
+            window.GoInstanceWorker.postMessage({
+              type: "getCsv",
+              message: {
+                dataSource: cantainerRef.stage.getDataSource(),
+                filename,
+              },
+            });
+          }}
+        >
+          export dataSource to csv file
+        </button>
+        <button
+          onClick={() => {
+            const filename = window.prompt("Please enter filename!", "test");
+            window.GoInstanceWorker.postMessage({
+              type: "getExcel",
+              message: {
+                dataSource: cantainerRef.stage.getDataSource(),
+                filename,
+                columns: cantainerRef.stage.columns,
+                tableOptions: cantainerRef.stage.options,
+              },
+            });
+          }}
+        >
+          export dataSource to excel file
+        </button>
+      </div>
     </>
   );
 }

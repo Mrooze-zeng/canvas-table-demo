@@ -17,6 +17,8 @@ export default class Container extends Component {
     this.stage = new Stage({
       width: this.width,
       height: this.height,
+      columns: props.columns,
+      options: props.options || {},
     });
     this.state = {
       inputLayerStyle: {},
@@ -34,14 +36,15 @@ export default class Container extends Component {
     return null;
   }
   componentDidMount() {
+    const { options } = this.stage;
     const headerRow = new Layer({
       type: Stage.LayerType.HEADER,
       x: 0,
       y: 0,
       stage: this.stage,
       width: this._getTotalWidth(),
-      height: 45,
-      color: "orange",
+      height: options.rowHeight,
+      color: options.header.backgroundColor,
       fixed: "top",
       columns: this.columns,
     });
@@ -57,8 +60,8 @@ export default class Container extends Component {
       layerOptions: {
         type: Stage.LayerType.BODY,
         width: this._getTotalWidth(),
-        y: 45,
-        color: "green",
+        y: this.stage.getHeadersHeight(),
+        color: options.body.backgroundColor,
       },
       ceilOptions: {
         events: {
@@ -71,7 +74,7 @@ export default class Container extends Component {
 
     this.setState({
       scrollEndPosition: {
-        top: this.stage.children.length * 45,
+        top: this.stage.children.length * options.rowHeight,
         left: this._getTotalWidth() - this.width / 2 + 5,
       },
     });
@@ -257,20 +260,7 @@ export default class Container extends Component {
             </div>
           </div>
         </div>
-        <button
-          onClick={() => {
-            const filename = window.prompt(
-              "Please enter filename!",
-              "test.csv",
-            );
-            window.GoInstanceWorker.postMessage({
-              type: "getExcel",
-              message: [this.stage.getDataSource(), filename],
-            });
-          }}
-        >
-          export dataSource
-        </button>
+        <br />
       </>
     );
   }

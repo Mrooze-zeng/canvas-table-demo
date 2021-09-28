@@ -5,6 +5,7 @@ import (
 )
 
 func main() {
-	js.Global().Set("getExcel", Csv())
+	js.Global().Set("getCsv", Csv())
+	js.Global().Set("getExcel", Excel())
 	select {}
 }

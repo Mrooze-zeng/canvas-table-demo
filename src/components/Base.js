@@ -14,8 +14,6 @@ export default class Base {
     width = 100,
     height = 45,
     color = "yellow",
-    borderColor = "white",
-    lineWidth = 1,
     fixed = "",
     columns = [],
     column = {},
@@ -35,8 +33,6 @@ export default class Base {
     this.height = height;
     this.ctx = stage.ctx;
     this.color = color;
-    this.borderColor = borderColor;
-    this.lineWidth = lineWidth;
     this.fixed = fixed;
     this.columns = columns;
     this.column = column;
@@ -122,10 +118,11 @@ export default class Base {
     return displayText;
   }
   drawText() {
-    this.ctx.fillStyle = "#000";
-    this.ctx.font = "16px sans-serif";
-    this.ctx.textAlign = "center";
-    this.ctx.textBaseline = "middle";
+    const { options = {} } = this.stage;
+    this.ctx.fillStyle = options.color;
+    this.ctx.font = [options.fontSize, options.fontFamily].join(" ");
+    this.ctx.textAlign = options.textAlign;
+    this.ctx.textBaseline = options.textBaseline;
     this.ctx.fillText(
       this.displayText,
       this.x + this.width / 2,

@@ -41,9 +41,10 @@ export default class Layer extends Base {
     return currentElement;
   }
   drawLine() {
+    const { options = {} } = this.stage;
     this.ctx.beginPath();
-    this.ctx.lineWidth = this.lineWidth;
-    this.ctx.strokeStyle = this.borderColor;
+    this.ctx.lineWidth = options.borderLineWidth;
+    this.ctx.strokeStyle = options.borderColor;
     this.ctx.moveTo(this.x, this.y);
     this.ctx.lineTo(this.x + this.width, this.y);
     this.ctx.stroke();

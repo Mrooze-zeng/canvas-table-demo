@@ -1,8 +1,8 @@
 export const COLUMN_TYPE = {
-  IMAGE: Symbol("image"),
-  TEXT: Symbol("text"),
-  FUNCTION_BOX: Symbol("function-box"),
-  EDITABLE: Symbol("editable"),
+  IMAGE: 0,
+  TEXT: 1,
+  FUNCTION_BOX: 2,
+  EDITABLE: 3,
 };
 
 export const columns = [

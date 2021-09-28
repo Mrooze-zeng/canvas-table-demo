@@ -31,9 +31,10 @@ export default class Ceil extends Base {
     this.dataSource[this.column.key] = value;
   }
   drawBorderRight() {
+    const { options = {} } = this.stage;
     this.ctx.beginPath();
-    this.ctx.lineWidth = this.lineWidth / 2;
-    this.ctx.strokeStyle = this.borderColor;
+    this.ctx.lineWidth = options.borderLineWidth / 2;
+    this.ctx.strokeStyle = options.borderColor;
     this.ctx.moveTo(this.x + this.width, this.y);
     this.ctx.lineTo(this.x + this.width, this.y + this.height);
     this.ctx.stroke();

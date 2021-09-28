@@ -9,10 +9,12 @@ export default class Stage {
   };
   children = [];
   visibleRange = { x: 0, y: 0 };
-  constructor({ width = 250, height = 250 }) {
+  constructor({ width = 250, height = 250, columns = [], options = {} }) {
     let ratio = window.devicePixelRatio || 1;
     this.width = width * ratio;
     this.height = height * ratio;
+    this.columns = columns;
+    this.options = options;
     this.canvas = document.createElement("canvas");
     this.canvas.width = this.width;
     this.canvas.height = this.height;
@@ -35,6 +37,13 @@ export default class Stage {
     return this.children.filter(
       (layer) => layer.type === Stage.LayerType.HEADER,
     );
+  }
+  getHeadersHeight() {
+    const headers = this.getHeaders();
+    return headers.reduce((height, header) => {
+      height += header.height;
+      return height;
+    }, 0);
   }
   getBodys() {
     return this.children.filter((layer) => layer.type === Stage.LayerType.BODY);
