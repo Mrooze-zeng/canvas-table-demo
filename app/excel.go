@@ -5,7 +5,7 @@ import (
 	"strings"
 	"syscall/js"
 
-	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/xuri/excelize/v2"
 )
 
 func Excel() js.Func {
@@ -24,12 +24,27 @@ func Excel() js.Func {
 
 		f := excelize.NewFile()
 
+		// headerStyle, _ := f.NewStyle(`{
+		// 	"border":{
+		// 		"type":1,
+		// 		"color":"#ffffff"
+		// 	},
+		// 	"font":{
+		// 		"size":"16px",
+		// 		"color":"#000000"
+		// 	},
+		// 	"fill":{
+		// 		"color":"orange"
+		// 	}
+		// }`)
+
 		index := f.NewSheet(filename)
+
+		// f.SetColStyle(filename, fmt.Sprintf("%s:%s", indexToRuneString(0), indexToRuneString(len(columns)-1)), headerStyle)
 
 		for k, col := range columns {
 			f.SetCellValue(filename, ceilPostion(k, 1), col.Title)
 			f.SetRowHeight(filename, 1, float64(tableOptions.RowHeight/2))
-
 		}
 		for k, row := range dataSource {
 			for i, col := range columns {
@@ -37,7 +52,7 @@ func Excel() js.Func {
 				value := reflect.Indirect(rowReflect).FieldByName(strings.Title(col.Key))
 				if value.IsValid() {
 					f.SetCellValue(filename, ceilPostion(i, k+2), value)
-					f.SetColWidth(filename, indexToRuneString(rune(i)), indexToRuneString(rune(i)), float64(col.Width/10))
+					f.SetColWidth(filename, indexToRuneString(i), indexToRuneString(i), float64(col.Width/10))
 					f.SetRowHeight(filename, k+2, float64(tableOptions.RowHeight/2))
 				}
 			}

@@ -93,18 +93,17 @@ func parserArgs(args []js.Value) ReceiveArgs {
 	return *output
 }
 
-func indexToRuneString(index rune) string {
+func indexToRuneString(index int) string {
 	firstRune := rune(65)
 	maxIndex := rune(26)
 	stringCollection := []string{}
-	for i := 0; i < int(index/maxIndex); i++ {
+	for i := 0; i < int(rune(index)/maxIndex); i++ {
 		stringCollection = append(stringCollection, string(maxIndex-1+firstRune))
 	}
-	stringCollection = append(stringCollection, string(index%maxIndex+firstRune))
+	stringCollection = append(stringCollection, string(rune(index)%maxIndex+firstRune))
 	return strings.Join(stringCollection, "")
 }
 
 func ceilPostion(col int, row int) string {
-	return fmt.Sprintf("%s%d", indexToRuneString(rune(col)), row)
+	return fmt.Sprintf("%s%d", indexToRuneString(col), row)
 }
-
