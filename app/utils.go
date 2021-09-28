@@ -19,9 +19,9 @@ func jsConsole(logType string, msgs ...interface{}) {
 	js.Global().Get("console").Call(logType, fmt.Sprintf("%s \n%s:%d", fmt.Sprint(msgs...), file, line))
 }
 
-func jsToString(v js.Value) string {
-	return js.Global().Get("Object").Get("prototype").Get("toString").Call("call", v).String()
-}
+// func jsToString(v js.Value) string {
+// 	return js.Global().Get("Object").Get("prototype").Get("toString").Call("call", v).String()
+// }
 
 func jsJSONStringify(v js.Value, defaultText string) string {
 	if v.IsUndefined() {

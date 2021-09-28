@@ -33,8 +33,8 @@ type TableOptions struct {
 	TextBaseline    string     `json:"textBaseline"`
 	FontSize        float64    `json:"fontSize"`
 	Color           string     `json:"color"`
-	Header          RowOptions `json:"header`
-	Body            RowOptions `json:"body`
+	Header          RowOptions `json:"header"`
+	Body            RowOptions `json:"body"`
 }
 
 type ReceiveArgs struct {

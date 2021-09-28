@@ -139,6 +139,7 @@ func Excel() js.Func {
 		}
 
 		f.SetActiveSheet(index)
+		f.DeleteSheet("Sheet1")
 
 		buf, err := f.WriteToBuffer()
 
