@@ -120,9 +120,13 @@ export default class Base {
   drawText() {
     const { options = {} } = this.stage;
     this.ctx.fillStyle = options.color;
-    this.ctx.font = [options.fontSize, options.fontFamily].join(" ");
+    this.ctx.font = [
+      parseInt(options.fontSize) + "px",
+      options.fontFamily,
+    ].join(" ");
     this.ctx.textAlign = options.textAlign;
-    this.ctx.textBaseline = options.textBaseline;
+    this.ctx.textBaseline =
+      options.textBaseline === "center" ? "middle" : options.textBaseline;
     this.ctx.fillText(
       this.displayText,
       this.x + this.width / 2,

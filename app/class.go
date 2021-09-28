@@ -31,7 +31,7 @@ type TableOptions struct {
 	FontFamily      string     `json:"fontFamily"`
 	TextAlign       string     `json:"textAlign"`
 	TextBaseline    string     `json:"textBaseline"`
-	FontSize        string     `json:"fontSize"`
+	FontSize        float64    `json:"fontSize"`
 	Color           string     `json:"color"`
 	Header          RowOptions `json:"header`
 	Body            RowOptions `json:"body`

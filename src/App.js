@@ -9,18 +9,18 @@ function App() {
   let cantainerRef = createRef();
   const tableOptions = {
     borderLineWidth: 1,
-    borderColor: "white",
+    borderColor: "#FFFFFF",
     rowHeight: 45,
     fontFamily: "sans-serif",
     textAlign: "center",
-    textBaseline: "middle",
-    fontSize: "16px",
-    color: "#000",
+    textBaseline: "center",
+    fontSize: 16.0,
+    color: "#000000",
     header: {
-      backgroundColor: "orange",
+      backgroundColor: "#ffa500",
     },
     body: {
-      backgroundColor: "green",
+      backgroundColor: "#008000",
     },
   };
   const sortFixedColumns = function (columns = []) {
