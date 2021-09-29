@@ -5,6 +5,7 @@ import Layer from "./Layer";
 import Stage from "./Stage";
 
 export default class Container extends Component {
+  listeners = new Map();
   constructor(props) {
     super(props);
     this.wrapperRef = createRef();
@@ -78,6 +79,25 @@ export default class Container extends Component {
         left: this._getTotalWidth() - this.width / 2 + 5,
       },
     });
+
+    this.listeners.set(
+      "detectResize",
+      this.detectResize(() => {
+        this.stage.render(this.stage.x, this.stage.y);
+      }),
+    );
+  }
+  componentWillUnmount() {
+    this.listeners.forEach((listener) => {
+      typeof listener === "function" && listener();
+    });
+  }
+  detectResize(action = function () {}, delay = 0) {
+    action = _.throttle(action, delay);
+    window.addEventListener("resize", action);
+    return function () {
+      window.removeEventListener("resize", action);
+    };
   }
   _getTotalWidth() {
     let width = 0;
